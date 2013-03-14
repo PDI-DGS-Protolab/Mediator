@@ -7,10 +7,10 @@ aws_secret = 'nISSY87k44Ea+7Apv43dh6up3WKftt9+nxQzylx/'
 
 
 # Instances that we want to stop
-instances = [ 'i-c8076b82', 'i-ce076b84', 'i-cc076b86' ]
+instances = [ 'i-b6dfb1fc', 'i-6eddb324', 'i-3adbb570' ]
 
 # Connect to EC2 
 conn = boto.ec2.connect_to_region("eu-west-1", aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
 
 # Stop instances
-conn.stop_instances( instance_ids=[ 'i-c8076b82' ] )
+conn.stop_instances( instance_ids=instances )
