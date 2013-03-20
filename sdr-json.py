@@ -52,7 +52,8 @@ if __name__ == "__main__":
     uploader = SDR_uploader()
     sdr = uploader.generate_sdr(user, service, events)
 
-    client = riak.RiakClient(host="ec2-54-228-72-208.eu-west-1.compute.amazonaws.com", port="8098")
+    # client = riak.RiakClient(host="ec2-54-228-72-208.eu-west-1.compute.amazonaws.com", port="8098")
+    client = riak.RiakClient(host="localhost", port="8098")
     uploader.upload_sdr(client, sdr)
     test = client.bucket('test')
     print test.get('0').get_data()
