@@ -21,7 +21,7 @@ conn = connect_to_region('eu-west-1', aws_access_key_id=AWS_KEY, aws_secret_acce
 today = date.today()
 now   = datetime.datetime.now()
 
-shutdown_time = datetime.datetime(today.year, today.month, today.day, 16, 00)
+shutdown_time = datetime.datetime(today.year, today.month, today.day, 16 - 1, 00)
 startup_time  = datetime.datetime(today.year, today.month, today.day, now.hour - 1, now.minute + 3)
 
 # Scheduling tasks
