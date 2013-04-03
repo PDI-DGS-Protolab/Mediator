@@ -38,6 +38,9 @@ class RiakCSConnector():
 
             op = self.get_operation(ops, operation)
 
+            if not bucket_name:
+                bucket_name = helpers.timebox()
+
             if (operation == "list_all_bucket") or (operation == "get_bucket" and not bucket_name):
                 command = "s3cmd " + op
             else:
@@ -60,10 +63,11 @@ class RiakCSConnector():
             op = self.get_operation(ops, operation)
 
             command = ""
-            if op is "put":
+            if operation == "upload_file":
+                self.create_bucket(bucket_name)
                 command = "s3cmd " + op + " " + file_name + " s3://" + bucket_name
 
-            elif op is "get" and not local_file:
+            elif operation == "get_file" and not local_file:
                 local_file = "riak_cs_" + file_name + "_" + helpers.now()
                 command = "s3cmd " + op + " s3://" + bucket_name + "/" + file_name + " " + local_file
 
@@ -76,7 +80,6 @@ class RiakCSConnector():
 
 if __name__ == "__main__":
     cs = RiakCSConnector()
-    cs['list_all_bucket']()
     """
     bucket = "bucket.testing.2013.04.03"
     cs.create_bucket(bucket)
