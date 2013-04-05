@@ -17,8 +17,8 @@ class SDR_Generator():
             eventsList.append(data)
 
         return {
-            'serviceId': sdr['serviceId'],
             'accountId': user_id,
+            'serviceId': sdr['serviceId'],
             'requestId': sdr['requestId'] or None,
             'requestOrder': sdr['requestOrder'] or None,
             'country': sdr['countryId'],
