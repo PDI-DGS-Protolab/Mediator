@@ -1,90 +1,75 @@
 
 import helpers
-import os
+import subprocess
 
 
 class RiakCSConnector():
 
-    def __init__(self):
-        for op in ['create', 'get', 'list', 'list_all', 'remove']:
-            name = op + "_bucket"
-            setattr(RiakCSConnector, name, self.make_bucket(name))
-
-        for op in ['get', 'upload', 'delete']:
-            name = op + "_file"
-            setattr(RiakCSConnector, name, self.make_file(name))
-
     def call(self, command):
-        os.system(command)
+        out = subprocess.check_output(command, shell=True)
+        return out
 
-    def get_operation(self, ops, operation):
-        # TODO Handle this exception properly
-        if not operation or not ops:
-            raise Exception("Operation not supported")
+    def filter_output(self, out):
+        lines = out.split('\n')
+        lines = lines[:-1]  # We take every line except the last '\n'
 
-        return ops[operation]
+        buckets = []
+        for l in lines:
+            i = l.find('s3://')
+            s = l[i:]
+            buckets.append(s)
 
-    def make_bucket(self, operation):
+        print buckets
+        return buckets
 
-        def bucket_method(self, bucket_name=""):
-
-            # Dictionary to translate method name into required command by the s3cmd tool
-            ops = {"create_bucket": "mb",
-                   "get_bucket": "ls",
-                   "list_bucket": "ls",
-                   "list_all_bucket": "la",
-                   "remove_bucket": "rb"
-                   }
-
-            op = self.get_operation(ops, operation)
-
-            if not bucket_name:
+    def create_bucket(self, bucket_name):
+        if not bucket_name:
                 bucket_name = helpers.timebox()
 
-            if (operation == "list_all_bucket") or (operation == "get_bucket" and not bucket_name):
-                command = "s3cmd " + op
-            else:
-                command = "s3cmd " + op + " s3://" + bucket_name
+        command = "s3cmd mb s3://" + bucket_name
+        self.call(command)
 
-            self.call(command)
+    def list_buckets_names(self):
+        out = self.call("s3cmd ls")
+        return out
 
-        return bucket_method
+    def get_filenames_from_bucket(self, bucket_name):
+        command = "s3cmd ls s3://" + bucket_name
+        out = self.call(command)
+        # out = self.filter_output(out)
+        return out
 
-    def make_file(self, operation):
+    def get_filenames_from_buckets(self):
+        command = "s3cmd la"
+        out = self.call(command)
+        # out = self.filter_output(out)
+        return out
 
-        def file_method(self, file_name, bucket_name, local_file=""):
+    def remove_bucket(self, bucket_name):
+        command = "s3cmd rb s3://" + bucket_name
+        self.call(command)
 
-            # Dictionary to translate method name into required command by the s3cmd tool
-            ops = {"upload_file": "put",
-                   "delete_file": "del",
-                   "get_file": "get"
-                   }
+    def upload_file(self, file_name, bucket_name):
+        self.create_bucket(bucket_name)
+        command = "s3cmd put " + file_name + " s3://" + bucket_name
+        self.call(command)
 
-            op = self.get_operation(ops, operation)
+    def delete_file(self, file_name, bucket_name):
+        command = "s3cmd del " + file_name + " s3://" + bucket_name
+        self.call(command)
 
-            command = ""
-            if operation == "upload_file":
-                self.create_bucket(bucket_name)
-                command = "s3cmd " + op + " " + file_name + " s3://" + bucket_name
+    def get_file(self, file_name, bucket_name, local_file=""):
+        local_file = "riak_cs_" + file_name + "_" + helpers.now()
+        command = "s3cmd get s3://" + bucket_name + "/" + file_name + " " + local_file
+        self.call(command)
 
-            elif operation == "get_file" and not local_file:
-                local_file = "riak_cs_" + file_name + "_" + helpers.now()
-                command = "s3cmd " + op + " s3://" + bucket_name + "/" + file_name + " " + local_file
-
-            else:
-                command = "s3cmd " + op + " s3://" + bucket_name + "/" + file_name + " " + local_file
-
-            self.call(command)
-
-        return file_method
 
 if __name__ == "__main__":
     cs = RiakCSConnector()
-    """
+
     bucket = "bucket.testing.2013.04.03"
     cs.create_bucket(bucket)
     cs.upload_file("salva", bucket)
-    cs.list_all_bucket()
-    cs.list_bucket("bucket.testing.oil.upm")
-    cs.get_bucket()
-    """
+    print cs.list_buckets_names()
+    print cs.get_filenames_from_buckets()
+    print cs.get_filenames_from_bucket("bucket.testing.salva")
